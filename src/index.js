@@ -17,7 +17,7 @@ const disable_cache = true
 
 // Replace texts.
 const replace_dict = {
-	'$upstream': '$custom_domain',
+	'$upstream_domain': '$',
 	//'//google.com': ''
 }
 
@@ -44,6 +44,7 @@ async function fetchAndApply(request) {
 	}
 
 	var urlParam = params.get('url')
+	console.log(urlParam)
 
 	if (urlParam == null) {
 		urlParam = "https://superposition-landing.bomberfish.ca"
@@ -86,9 +87,11 @@ async function fetchAndApply(request) {
 	}
 
 	const content_type = new_response_headers.get('content-type');
-	if (content_type != null && content_type.includes('text/html') && content_type.includes('UTF-8')) {
+	if (content_type != null /*&& content_type.includes('text/html') && content_type.includes('UTF-8')*/) {
+		console.log("Replacing reponse text")
 		original_text = await replace_response_text(original_response_clone, upstream_domain, url_hostname);
 	} else {
+		console.log("Not replacing response text")
 		original_text = original_response_clone.body
 	}
 
@@ -103,25 +106,42 @@ async function replace_response_text(response, upstream_domain, host_name) {
 	let text = await response.text()
 
 	var i, j;
-	for (i in replace_dict) {
-		j = replace_dict[i]
-		// if (i == '$upstream') {
-		// 	i = upstream_domain
-		// } else if (i == '$custom_domain') {
-		// 	i = host_name
-		// }
+	// for (i in replace_dict) {
+	// j = replace_dict[i]
+	// if (i == '$upstream') {
+	// 	i = upstream_domain
+	// } else if (i == '$custom_domain') {
+	// 	i = host_name
+	// }
 
-		// if (j == '$upstream') {
-		// 	j = upstream_domain
-		// } else if (j == '$custom_domain') {
-		// 	j = host_name
-		// }
+	// if (j == '$upstream') {
+	// 	j = upstream_domain
+	// } else if (j == '$custom_domain') {
+	// 	j = host_name
+	// }
 
-		i = 'https://superposition.bomberfish.ca/?url=' + upstream_domain
-		j = 'https://superposition.bomberfish.ca/?url=' + upstream_domain
+	console.log("Replace 1")
+	i = upstream_domain
+	j = host_name + '/?url=https://' + upstream_domain
 
-		let re = new RegExp(i, 'g')
-		text = text.replace(re, j);
-	}
+	let re = new RegExp(i, 'g')
+	text = text.replace(re, j);
+	
+	console.log("Replace 2")
+
+	i = "src=\"/"
+	j = "src=\"https://" + host_name + "/?url=https://" + upstream_domain + "/"
+
+	let re2 = new RegExp(i, 'g')
+	text = text.replace(re2, j);
+
+	console.log("Replace 3")
+
+	i = "href=\"/"
+	j = "href=\"https://" + host_name + "/?url=https://" + upstream_domain + "/"
+
+	let re3 = new RegExp(i, 'g')
+	text = text.replace(re3, j);
+	// }
 	return text;
 }
