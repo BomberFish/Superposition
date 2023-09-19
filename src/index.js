@@ -43,8 +43,13 @@ async function fetchAndApply(request) {
 		url.protocol = 'http:';
 	}
 
+	var urlParam = params.get('url')
 
-	url = new URL(params.get('url'));
+	if (urlParam == null) {
+		urlParam = "https://superposition-landing.bomberfish.ca"
+	}
+
+	url = new URL(urlParam);
 	let upstream_domain = url.hostname
 
 	let method = request.method;
@@ -100,17 +105,20 @@ async function replace_response_text(response, upstream_domain, host_name) {
 	var i, j;
 	for (i in replace_dict) {
 		j = replace_dict[i]
-		if (i == '$upstream') {
-			i = upstream_domain
-		} else if (i == '$custom_domain') {
-			i = host_name
-		}
+		// if (i == '$upstream') {
+		// 	i = upstream_domain
+		// } else if (i == '$custom_domain') {
+		// 	i = host_name
+		// }
 
-		if (j == '$upstream') {
-			j = upstream_domain
-		} else if (j == '$custom_domain') {
-			j = host_name
-		}
+		// if (j == '$upstream') {
+		// 	j = upstream_domain
+		// } else if (j == '$custom_domain') {
+		// 	j = host_name
+		// }
+
+		i = 'https://superposition.bomberfish.ca/?url=' + upstream_domain
+		j = 'https://superposition.bomberfish.ca/?url=' + upstream_domain
 
 		let re = new RegExp(i, 'g')
 		text = text.replace(re, j);
