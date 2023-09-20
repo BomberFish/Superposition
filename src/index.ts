@@ -68,7 +68,7 @@ async function fetchAndApply(request) {
 	})
 
 	let original_response_clone = original_response.clone();
-	let original_text = null;
+	let original_text: string | undefined = null;
 	let response_headers = original_response.headers;
 	let new_response_headers = new Headers(response_headers);
 	let status = original_response.status;
@@ -93,7 +93,7 @@ async function fetchAndApply(request) {
 		original_text = await replace_response_text(original_response_clone, upstream_domain, url_hostname, url);
 	} else {
 		console.log("Not replacing response text")
-		original_text = original_response_clone.body
+		original_text = original_response_clone.text() as unknown as string;
 	}
 
 	response = new Response(original_text, {
@@ -103,7 +103,7 @@ async function fetchAndApply(request) {
 	return response;
 }
 
-async function replace_response_text(response, upstream_domain, host_name, fullURL) {
+async function replace_response_text(response: Response, upstream_domain: string, host_name: string, fullURL: URL) {
 	let text = await response.text()
 
 	var i, j, re;
@@ -130,5 +130,22 @@ async function replace_response_text(response, upstream_domain, host_name, fullU
 
 	re = new RegExp(i, 'g')
 	text = text.replace(re, j);
+
+	console.log("Replace 4")
+
+	i = "src=\"./"
+	j = "src=\"https://" + host_name + "/?url=" + fullURL.toString()
+
+	re = new RegExp(i, 'g')
+	text = text.replace(re, j);
+
+	console.log("Replace 5")
+
+	i = "href=\"./"
+	j = "href=\"https://" + host_name + "/?url=" + fullURL.toString()
+	re = new RegExp(i, 'g')
+	text = text.replace(re, j);
+
+
 	return text;
 }
