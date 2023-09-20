@@ -25,13 +25,14 @@ addEventListener('fetch', event => {
 	event.respondWith(fetchAndApply(event.request));
 })
 
+
 async function fetchAndApply(request) {
 
 	const region = request.headers.get('cf-ipcountry').toUpperCase();
 	const ip_address = request.headers.get('cf-connecting-ip');
 	const user_agent = request.headers.get('user-agent');
 
-	let response = null;
+	var response: Response = new Response(null);
 	var url = new URL(request.url);
 	let url_hostname = url.hostname;
 
@@ -77,7 +78,7 @@ async function fetchAndApply(request) {
 	}
 
 	new_response_headers.set('access-control-allow-origin', '*');
-	new_response_headers.set('access-control-allow-credentials', true);
+	new_response_headers.set('access-control-allow-credentials', 'true');
 	new_response_headers.delete('content-security-policy');
 	new_response_headers.delete('content-security-policy-report-only');
 	new_response_headers.delete('clear-site-data');
@@ -89,7 +90,7 @@ async function fetchAndApply(request) {
 	const content_type = new_response_headers.get('content-type');
 	if (content_type != null /*&& content_type.includes('text/html') && content_type.includes('UTF-8')*/) {
 		console.log("Replacing reponse text")
-		original_text = await replace_response_text(original_response_clone, upstream_domain, url_hostname);
+		original_text = await replace_response_text(original_response_clone, upstream_domain, url_hostname, url);
 	} else {
 		console.log("Not replacing response text")
 		original_text = original_response_clone.body
@@ -102,29 +103,16 @@ async function fetchAndApply(request) {
 	return response;
 }
 
-async function replace_response_text(response, upstream_domain, host_name) {
+async function replace_response_text(response, upstream_domain, host_name, fullURL) {
 	let text = await response.text()
 
-	var i, j;
-	// for (i in replace_dict) {
-	// j = replace_dict[i]
-	// if (i == '$upstream') {
-	// 	i = upstream_domain
-	// } else if (i == '$custom_domain') {
-	// 	i = host_name
-	// }
-
-	// if (j == '$upstream') {
-	// 	j = upstream_domain
-	// } else if (j == '$custom_domain') {
-	// 	j = host_name
-	// }
+	var i, j, re;
 
 	console.log("Replace 1")
 	i = upstream_domain
 	j = host_name + '/?url=https://' + upstream_domain
 
-	let re = new RegExp(i, 'g')
+	re = new RegExp(i, 'g')
 	text = text.replace(re, j);
 	
 	console.log("Replace 2")
@@ -132,16 +120,15 @@ async function replace_response_text(response, upstream_domain, host_name) {
 	i = "src=\"/"
 	j = "src=\"https://" + host_name + "/?url=https://" + upstream_domain + "/"
 
-	let re2 = new RegExp(i, 'g')
-	text = text.replace(re2, j);
+	re = new RegExp(i, 'g')
+	text = text.replace(re, j);
 
 	console.log("Replace 3")
 
 	i = "href=\"/"
 	j = "href=\"https://" + host_name + "/?url=https://" + upstream_domain + "/"
 
-	let re3 = new RegExp(i, 'g')
-	text = text.replace(re3, j);
-	// }
+	re = new RegExp(i, 'g')
+	text = text.replace(re, j);
 	return text;
 }
