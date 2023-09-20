@@ -3,23 +3,8 @@
 // Superposition: Proof-of-concept proxy using Cloudflare Workers.
 // Based on https://github.com/aD4wn/Workers-Proxy.
 
-// Website you intended to retrieve for users.
-const upstream = 'duckduckgo.com'
-
-// Custom pathname for the upstream website.
-const upstream_path = '/'
-
-// Whether to use HTTPS protocol for upstream address.
-const https = true
-
-// Whether to disable cache.
-const disable_cache = true
-
-// Replace texts.
-const replace_dict = {
-	'$upstream_domain': '$',
-	//'//google.com': ''
-}
+const useHTTPS = true
+const disableCloudflareCache = true
 
 addEventListener('fetch', event => {
 	event.respondWith(fetchAndApply(event.request));
@@ -38,7 +23,7 @@ async function fetchAndApply(request) {
 
 	let params = url.searchParams;
 
-	if (https == true) {
+	if (useHTTPS == true) {
 		url.protocol = 'https:';
 	} else {
 		url.protocol = 'http:';
@@ -73,7 +58,7 @@ async function fetchAndApply(request) {
 	let new_response_headers = new Headers(response_headers);
 	let status = original_response.status;
 
-	if (disable_cache) {
+	if (disableCloudflareCache) {
 		new_response_headers.set('Cache-Control', 'no-store');
 	}
 
@@ -148,4 +133,10 @@ async function replace_response_text(response: Response, upstream_domain: string
 
 
 	return text;
+}
+
+async function addButton(text: string) {
+	let html = '<div id="superposition-popup"><style>#superposition-popup {font-family: -apple-system, system-ui, sans!important;font-size: 16px!important;position: fixed!important;top: 2%!important;margin-left: 1em;text-align: center!important;float: left!important;padding: 1em!important;border: 1px solid white!important;background: #663399dd!important;border-radius: 100vw!important;backdrop-filter: blur(8px)!important;-webkit-backdrop-filter: blur(8px)!important;-moz-backdrop-filter: blur(8px)!important;line-height: initial;}#superposition-popup,#superposition-popup:hover {transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;}#superposition-popup:hover {padding: 1.1em!important;box-shadow: 0px 0px 69px 0px rgba(102, 51, 153, 0.5)!important;-webkit-box-shadow: 0px 0px 69px 0px rgba(102, 51, 153, 0.5)!important;-moz-box-shadow: 0px 0px 69px 0px rgba(102, 51, 153, 0.5)!important;}#superposition-popup>a,#superposition-popup>a:hover,#superposition-popup>a:visited {text-decoration: none!important;color: white !important;}</style><a href="https://superposition.bomberfish.ca"><?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="14.5078" height="11.8516"><g><rect height="11.8516" opacity="0" width="14.5078" x="0" y="0"/><path d="M0 5.92188C0 6.11719 0.0859375 6.29688 0.242188 6.44531L5.42969 11.625C5.58594 11.7734 5.75 11.8438 5.9375 11.8438C6.32031 11.8438 6.625 11.5625 6.625 11.1719C6.625 10.9844 6.55469 10.7969 6.42969 10.6797L4.67969 8.89844L1.58594 6.07812L1.42188 6.46094L3.9375 6.61719L13.8203 6.61719C14.2266 6.61719 14.5078 6.32812 14.5078 5.92188C14.5078 5.51562 14.2266 5.22656 13.8203 5.22656L3.9375 5.22656L1.42188 5.38281L1.58594 5.77344L4.67969 2.94531L6.42969 1.16406C6.55469 1.03906 6.625 0.859375 6.625 0.671875C6.625 0.28125 6.32031 0 5.9375 0C5.75 0 5.58594 0.0625 5.41406 0.234375L0.242188 5.39844C0.0859375 5.54688 0 5.72656 0 5.92188Z" fill="#ffffff" fill-opacity="0.85"/></g></svg>&nbsp;&nbsp;Back to Superposition home</a></div>'
+	let appendedString = text + html
+	return appendedString
 }
